@@ -1,0 +1,57 @@
+name: Build YaqobiTrad production images
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract production bundle
+        run: |
+          set -e
+          rm -rf build-src
+          mkdir build-src
+          unzip -q YaqobiTrad-production.zip -d build-src
+
+          test -f build-src/production_services/auth/Dockerfile
+          test -f build-src/production_services/secret/Dockerfile
+          test -f build-src/production_services/monitoring/Dockerfile
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build auth
+        uses: docker/build-push-action@v6
+        with:
+          context: build-src/production_services/auth
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/yaqobitrad-auth:production
+
+      - name: Build secret
+        uses: docker/build-push-action@v6
+        with:
+          context: build-src/production_services/secret
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/yaqobitrad-secret:production
+
+      - name: Build monitoring
+        uses: docker/build-push-action@v6
+        with:
+          context: build-src/production_services/monitoring
+          push: true
+          tags: ghcr.io/${{ github.repository_owner }}/yaqobitrad-monitoring:production
