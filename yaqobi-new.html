@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YaqobiTrade | پلتفرم ترید ۱ دقیقه‌ای</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-[#0a0f1d] text-white font-sans pb-28 select-none">
+  
+  <!-- هدر -->
+  <header class="p-4 flex items-center justify-between border-b border-gray-800 bg-[#0d1424] sticky top-0 z-40">
+    <div>
+      <span class="text-[10px] text-gray-400 block">Total Balance</span>
+      <div class="flex items-center gap-1 font-bold text-base">
+        <span id="balance-text">150.00</span>
+        <span class="text-cyan-400 text-xs">YQT</span>
+      </div>
+    </div>
+    <div class="flex gap-1">
+      <button onclick="switchTab('dashboard')" id="btn-dash" class="bg-cyan-500/20 text-cyan-400 px-2.5 py-1.5 rounded-xl font-bold text-xs">داشبورد</button>
+      <button onclick="switchTab('wallet')" id="btn-wallet" class="bg-gray-800 text-gray-300 px-2.5 py-1.5 rounded-xl font-bold text-xs">کیف پول</button>
+      <button onclick="switchTab('history')" id="btn-history" class="bg-gray-800 text-gray-300 px-2.5 py-1.5 rounded-xl font-bold text-xs">تاریخچه</button>
+    </div>
+  </header>
+
+  <!-- محتوا -->
+  <main class="p-4 space-y-4 max-w-md mx-auto">
+    
+    <!-- ۱. بخش داشبورد و نمودار -->
+    <div id="section-dashboard" class="space-y-4">
+      
+      <!-- انتخاب جفت ارز -->
+      <div class="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+        <button onclick="selectPair('BTC/USDT', 64250)" id="pair-BTC" class="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap">BTC/USDT</button>
+        <button onclick="selectPair('ETH/USDT', 3450)" id="pair-ETH" class="bg-[#0d1628] text-gray-400 border border-gray-800 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap">ETH/USDT</button>
+        <button onclick="selectPair('SOL/USDT', 145)" id="pair-SOL" class="bg-[#0d1628] text-gray-400 border border-gray-800 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap">SOL/USDT</button>
+        <button onclick="selectPair('BNB/USDT', 580)" id="pair-BNB" class="bg-[#0d1628] text-gray-400 border border-gray-800 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap">BNB/USDT</button>
+      </div>
+
+      <!-- نمودار زنده -->
+      <div class="bg-[#0d1628] border border-gray-800 rounded-3xl p-4 shadow-xl">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-2">
+            <span id="selected-pair-title" class="text-xs font-bold text-cyan-400">BTC/USDT</span>
+            <span id="bot-status-tag" class="text-[9px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-bold">ANALYZING...</span>
+          </div>
+          <span id="live-price" class="text-xs font-mono font-bold text-emerald-400">64,250.00</span>
+        </div>
+        <div class="h-44 w-full">
+          <canvas id="chartCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- کارت ربات -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-b from-[#131f37] to-[#0d1628] p-5 border border-cyan-500/20 text-center shadow-xl">
+        <h2 class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">G10 MetaTrade Bot</h2>
+        <p class="text-[11px] text-gray-400 mt-0.5">پلتفرم هوشمند ۱ دقیقه‌ای یعقوبی ترید</p>
+
+        <div class="my-4">
+          <span class="text-[10px] text-gray-400 block mb-1">سیگنال بعدی در:</span>
+          <div id="timer" class="font-mono text-3xl font-bold text-cyan-400">00:60</div>
+        </div>
+
+        <button id="bot-btn" onclick="toggleBot()" class="w-full py-3 font-extrabold rounded-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black shadow-lg shadow-emerald-500/20 text-xs">
+          فعال‌سازی ربات (Activate Bot)
+        </button>
+      </div>
+
+      <!-- موجودی سریع -->
+      <div class="bg-[#0d1628] border border-gray-800 rounded-3xl p-4 flex items-center justify-between">
+        <div>
+          <span class="text-xs text-gray-400 block">موجودی کیف پول</span>
+          <span id="wallet-balance" class="text-xl font-bold text-white">150.00 YQT</span>
+        </div>
+        <button onclick="switchTab('wallet')" class="bg-emerald-500 text-black px-3.5 py-2 rounded-xl font-bold text-xs">+ شارژ حساب</button>
+      </div>
+    </div>
+
+    <!-- ۲. بخش کیف پول -->
+    <div id="section-wallet" class="space-y-4 hidden">
+      <div class="bg-[#0d1628] border border-gray-800 rounded-3xl p-5 space-y-4">
+        <h3 class="text-base font-bold text-cyan-400">شارژ و برداشت کیف پول</h3>
+        
+        <div class="space-y-2">
+          <span class="text-xs text-gray-400 block">افزایش موجودی سریع:</span>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="addBalance(50)" class="p-3 bg-[#0a0f1d] border border-gray-700 rounded-2xl text-xs font-bold text-emerald-400">+50 YQT</button>
+            <button onclick="addBalance(100)" class="p-3 bg-[#0a0f1d] border border-gray-700 rounded-2xl text-xs font-bold text-emerald-400">+100 YQT</button>
+            <button onclick="addBalance(500)" class="p-3 bg-[#0a0f1d] border border-gray-700 rounded-2xl text-xs font-bold text-emerald-400">+500 YQT</button>
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-gray-800 space-y-3">
+          <span class="text-xs text-gray-400 block">ثبت درخواست برداشت (USDT TRC20):</span>
+          <input type="number" id="withdraw-amount" placeholder="مقدار YQT برای برداشت" class="w-full bg-[#0a0f1d] border border-gray-700 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <input type="text" placeholder="آدرس کیف پول مقصد (T...)" class="w-full bg-[#0a0f1d] border border-gray-700 rounded-2xl p-3 text-xs text-white focus:outline-none focus:border-cyan-400">
+          <button onclick="requestWithdraw()" class="w-full py-3 bg-cyan-500 text-black font-bold rounded-2xl text-xs shadow-lg">ثبت درخواست برداشت</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ۳. بخش تاریخچه -->
+    <div id="section-history" class="space-y-3 hidden">
+      <h3 class="text-base font-bold text-cyan-400 px-1">تاریخچه معاملات زنده</h3>
+      <div id="history-list" class="space-y-2">
+        <div class="text-center text-xs text-gray-500 py-6">هنوز معامله‌ای انجام نشده است.</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- منوی پایین -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#0a0f1d]/95 border-t border-gray-800 px-4 py-3 flex justify-around items-center z-50">
+    <button onclick="switchTab('dashboard')" class="text-cyan-400 flex flex-col items-center text-xs">داشبورد</button>
+    <button onclick="switchTab('wallet')" class="text-gray-400 flex flex-col items-center text-xs">کیف پول</button>
+    <button onclick="switchTab('history')" class="text-gray-400 flex flex-col items-center text-xs">تاریخچه</button>
+  </nav>
+
+  <script>
+    let balance = 150.00;
+    let isBotActive = false;
+    let timeLeft = 60;
+    let timerInterval;
+    let historyData = [];
+    let currentPair = 'BTC/USDT';
+    let basePrice = 64250;
+
+    // نمودار قیمت
+    let ctx = document.getElementById('chartCanvas').getContext('2d');
+    let priceChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['1m', '2m', '3m', '4m', '5m', '6m', '7m', 'NOW'],
+        datasets: [{
+          data: [64100, 64150, 64120, 64200, 64180, 64220, 64190, 64250],
+          borderColor: '#06b6d4',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: 'rgba(6, 182, 212, 0.1)',
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#6b7280', font: { size: 9 } } }
+        }
+      }
+    });
+
+    function selectPair(pair, price) {
+      currentPair = pair;
+      basePrice = price;
+      document.getElementById('selected-pair-title').innerText = pair;
+      
+      ['BTC', 'ETH', 'SOL', 'BNB'].forEach(p => {
+        let el = document.getElementById('pair-' + p);
+        if(p === pair.split('/')[0]) {
+          el.className = "bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap";
+        } else {
+          el.className = "bg-[#0d1628] text-gray-400 border border-gray-800 px-3 py-1.5 rounded-xl font-bold text-xs whitespace-nowrap";
+        }
+      });
+
+      let initialData = [];
+      for(let i=7; i>=0; i--) {
+        initialData.push(basePrice + (Math.random() - 0.5) * (basePrice * 0.005));
+      }
+      priceChart.data.datasets[0].data = initialData;
+      priceChart.update();
+    }
+
+    setInterval(() => {
+      let lastVal = priceChart.data.datasets[0].data.slice(-1)[0];
+      let variance = basePrice * 0.0005;
+      let change = (Math.random() - 0.48) * variance;
+      let newVal = Math.round((lastVal + change) * 100) / 100;
+      
+      document.getElementById('live-price').innerText = newVal.toLocaleString();
+      
+      priceChart.data.datasets[0].data.shift();
+      priceChart.data.datasets[0].data.push(newVal);
+      priceChart.update('none');
+    }, 2000);
+
+    function switchTab(tab) {
+      ['dashboard', 'wallet', 'history'].forEach(t => {
+        document.getElementById('section-' + t).classList.add('hidden');
+      });
+      document.getElementById('section-' + tab).classList.remove('hidden');
+      if(tab === 'history') renderHistory();
+    }
+
+    function toggleBot() {
+      isBotActive = !isBotActive;
+      const btn = document.getElementById('bot-btn');
+      const tag = document.getElementById('bot-status-tag');
+      
+      if (isBotActive) {
+        btn.innerText = "توقف ربات";
+        btn.className = "w-full py-3 font-extrabold rounded-2xl bg-red-500/20 border border-red-500 text-red-400 text-xs";
+        tag.innerText = "BOT ACTIVE";
+        tag.className = "text-[9px] bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded-full font-bold animate-pulse";
+        startTimer();
+      } else {
+        btn.innerText = "فعال‌سازی ربات (Activate Bot)";
+        btn.className = "w-full py-3 font-extrabold rounded-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-black text-xs";
+        tag.innerText = "PAUSED";
+        tag.className = "text-[9px] bg-gray-500/20 text-gray-400 px-2 py-0.5 rounded-full font-bold";
+        clearInterval(timerInterval);
+      }
+    }
+
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        if (timeLeft <= 0) {
+          timeLeft = 60;
+          executeTrade();
+        }
+        document.getElementById('timer').innerText = "00:" + (timeLeft < 10 ? "0" : "") + timeLeft;
+      }, 1000);
+    }
+
+    function executeTrade() {
+      let win = Math.random() < 0.68;
+      let profit = win ? 6.80 : -10.00;
+      balance += profit;
+      updateBalance();
+
+      let now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      historyData.unshift({
+        pair: currentPair + ' 1-MIN',
+        type: Math.random() > 0.5 ? 'BUY' : 'SELL',
+        profit: (profit > 0 ? '+' : '') + profit.toFixed(2) + ' YQT',
+        status: win ? 'WIN' : 'LOSS',
+        time: now
+      });
+    }
+
+    function addBalance(amount) {
+      balance += amount;
+      updateBalance();
+      alert(amount + " YQT اضافه شد!");
+    }
+
+    function requestWithdraw() {
+      let amt = parseFloat(document.getElementById('withdraw-amount').value);
+      if(!amt || amt <= 0 || amt > balance) {
+        alert("مقدار غیرمجاز است!");
+        return;
+      }
+      balance -= amt;
+      updateBalance();
+      alert("درخواست ثبت شد!");
+    }
+
+    function updateBalance() {
+      let val = balance.toFixed(2);
+      document.getElementById('balance-text').innerText = val;
+      document.getElementById('wallet-balance').innerText = val + " YQT";
+    }
+
+    function renderHistory() {
+      let list = document.getElementById('history-list');
+      if(historyData.length === 0) {
+        list.innerHTML = `<div class="text-center text-xs text-gray-500 py-6">هنوز معامله‌ای انجام نشده است.</div>`;
+        return;
+      }
+      list.innerHTML = historyData.map(item => `
+        <div class="bg-[#0d1628] border border-gray-800 p-3.5 rounded-2xl flex items-center justify-between text-xs">
+          <div>
+            <div class="font-bold flex items-center gap-2">
+              <span>${item.pair}</span>
+              <span class="text-[9px] px-1.5 py-0.5 rounded ${item.type === 'BUY' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}">${item.type}</span>
+            </div>
+            <span class="text-[10px] text-gray-400">${item.time}</span>
+          </div>
+          <span class="font-bold ${item.status === 'WIN' ? 'text-emerald-400' : 'text-red-400'}">${item.profit}</span>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
