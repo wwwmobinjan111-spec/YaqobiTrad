@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>YaqobiTrad - Official AI Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #060b13; color: #94a3b8; min-height: 100vh; padding-bottom: 30px; overflow-x: hidden; }
+
+        header { background: #0b1320; border-bottom: 1px solid #131f33; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 40; }
+        .balance-badge { background: #070f1e; border: 1px solid #17253d; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; color: #f8fafc; display: flex; align-items: center; gap: 6px; direction: ltr; }
+        .balance-badge span { color: #00f2fe; }
+        .add-btn { background: #064e3b; color: #10b981; border: none; width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; }
+
+        .brand-btn { background: #09203f; border: 1px solid #133a68; padding: 6px 12px; border-radius: 20px; color: #00f2fe; font-weight: bold; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+        
+        main { padding: 12px; max-width: 440px; margin: 0 auto; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        .card { background: #0b1320; border: 1px solid #131f33; border-radius: 20px; padding: 16px; margin-bottom: 16px; }
+
+        .trade-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .trade-title { font-size: 15px; font-weight: bold; color: #f1f5f9; }
+        .signal-tag { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .signal-dot { width: 6px; height: 6px; background: #10b981; border-radius: 50%; }
+
+        .pair-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 11px; }
+
+        .timer-wrapper { display: flex; justify-content: center; margin: 16px 0; }
+        .timer-circle { 
+            width: 130px; height: 130px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 24px; font-weight: bold; color: #ffffff; 
+            position: relative; background: #030712;
+            box-shadow: 0 0 15px rgba(0,242,254,0.15);
+        }
+        .timer-circle::before {
+            content: ''; position: absolute; inset: -4px; border-radius: 50%;
+            background: var(--timer-gradient, conic-gradient(#00f2fe 360deg, #17253d 0deg));
+            z-index: 0;
+        }
+        .timer-circle::after {
+            content: ''; position: absolute; inset: 4px; border-radius: 50%;
+            background: #0b1320; z-index: 1;
+        }
+        .timer-value { position: relative; z-index: 2; text-shadow: 0 0 8px rgba(0,242,254,0.5); direction: ltr; font-family: monospace; }
+
+        .amount-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 8px; align-items: center; }
+        .amount-controls { display: flex; align-items: center; background: #030712; border: 1px solid #17253d; border-radius: 12px; overflow: hidden; margin-bottom: 12px; direction: ltr; }
+        .amt-btn { background: #17253d; border: none; color: #f8fafc; width: 44px; height: 44px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .amt-input { background: transparent; border: none; text-align: center; color: #fff; font-size: 18px; font-weight: bold; flex: 1; outline: none; }
+
+        .invest-btn { width: 100%; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); color: #030712; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 15px rgba(0,242,254,0.3); }
+        .std-input { width: 100%; background: #030712; border: 1px solid #17253d; border-radius: 10px; padding: 12px; color: #fff; font-size: 12px; outline: none; margin-top: 6px; margin-bottom: 12px; direction: ltr; }
+
+        .modal { position: fixed; inset: 0; background: rgba(3, 7, 18, 0.96); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+        .modal.show { display: flex; }
+        .modal-box { background: #0b1320; border: 1px solid #131f33; border-radius: 20px; width: 100%; max-width: 400px; padding: 24px; text-align: center; }
+
+        .drawer-menu { position: fixed; top: 0; right: -280px; width: 280px; height: 100%; background: #0b1320; border: 1px solid #131f33; z-index: 2000; transition: right 0.3s ease; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .drawer-menu.open { right: 0 !important; }
+        .drawer-item { background: #030712; border: 1px solid #17253d; color: #fff; padding: 12px 16px; border-radius: 12px; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 12px; cursor: pointer; width: 100%; text-align: right; }
+        .drawer-item i { color: #00f2fe; font-size: 16px; width: 20px; }
+        .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1500; display: none; }
+        .drawer-overlay.show { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="toggleDrawer()" style="background:none; border:none; color:#00f2fe; font-size:20px; cursor:pointer;"><i class="fa-solid fa-bars"></i></button>
+            <div class="balance-badge">
+                <span id="balance-display">1000.00</span> <span>USDT</span>
+                <button class="add-btn" onclick="switchTab('deposit')">+</button>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <button onclick="toggleLang()" style="background:#17253d; border:1px solid #00f2fe; color:#00f2fe; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;" id="lang-btn">EN / فارسی</button>
+            <button onclick="userLogout()" style="background:#450a0a; border:1px solid #ef4444; color:#ef4444; padding:6px 10px; border-radius:8px; font-size:11px; font-weight:bold; cursor:pointer;" data-i18n="m_logout">Logout</button>
+            <div class="brand-btn"><i class="fa-solid fa-bolt"></i> YaqobiTrad</div>
+        </div>
+    </header>
+
+    <!-- Sidebar Drawer -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer()"></div>
+    <div class="drawer-menu" id="drawer-menu">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #17253d; padding-bottom:12px;">
+            <div style="font-weight:bold; color:#fff; font-size:15px;" id="menu-title-txt">منوی اصلی پلتفرم</div>
+            <button onclick="toggleDrawer()" style="background:none; border:none; color:#94a3b8; font-size:18px; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <button class="drawer-item" onclick="switchTab('bots')"><i class="fa-solid fa-robot"></i><span data-i18n="m_bots">معاملات اتوماتیک هوش مصنوعی</span></button>
+        <button class="drawer-item" onclick="switchTab('deposit')"><i class="fa-solid fa-arrow-down"></i><span data-i18n="m_dep">شارژ حساب (Deposit)</span></button>
+        <button class="drawer-item" onclick="switchTab('withdraw')"><i class="fa-solid fa-arrow-up"></i><span data-i18n="m_w">برداشت وجه (Withdraw)</span></button>
+        <button class="drawer-item" onclick="switchTab('rules')"><i class="fa-solid fa-book"></i><span data-i18n="m_rules">قوانین پلتفرم (Rules)</span></button>
+        <button class="drawer-item" onclick="verifyAdminAccess()"><i class="fa-solid fa-shield-halved" style="color:#f59e0b;"></i><span data-i18n="m_admin">پنل مدیریت (Admin)</span></button>
+    </div>
+
+    <main>
+        <!-- TAB 1: BOTS TRADING -->
+        <section id="tab-bots" class="view-section active">
+            <div class="card">
+                <div class="trade-meta">
+                    <span class="trade-title">YaqobiTrad • AI Engine</span>
+                    <span class="signal-tag"><span class="signal-dot"></span> Auto Global Market</span>
+                </div>
+
+                <div class="pair-info">
+                    <span data-i18n="curr_market">جفت‌ارز فعال خودکار:</span> <strong style="color:#00f2fe;" id="active-market-asset">EUR/USD</strong>
+                    <span style="font-family:monospace;" id="daily-count">0/10</span>
+                </div>
+
+                <!-- Timer Circle -->
+                <div class="timer-wrapper">
+                    <div class="timer-circle" id="timer-circle-elem">
+                        <span class="timer-value" id="timer-display">00:60</span>
+                    </div>
+                </div>
+
+                <div class="amount-header">
+                    <span data-i18n="inv_amt">مبلغ سرمایه‌گذاری (USDT)</span>
+                    <span><span data-i18n="bal_lbl">موجودی:</span> <strong style="color:#00f2fe; direction:ltr; display:inline-block;" id="card-balance">1000.00</strong></span>
+                </div>
+
+                <div class="amount-controls">
+                    <button class="amt-btn" onclick="adjustAmount(-10)">-</button>
+                    <input type="number" id="invest-amt" class="amt-input" value="10" min="1" oninput="recalcPayout()">
+                    <button class="amt-btn" onclick="adjustAmount(10)">+</button>
+                </div>
+
+                <div style="background:#030712; border:1px solid #17253d; border-radius:12px; padding:12px; margin-bottom:16px; font-size:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="color:#64748b; display:block; font-size:10px;" data-i18n="est_profit">سود خالص (پس از کسر کارمزد ۵٪):</span>
+                        <strong style="color:#10b981; font-family:monospace;" id="net-profit-val">5.70 USDT (+57%)</strong>
+                    </div>
+                </div>
+
+                <button class="invest-btn" onclick="startInvestment()">
+                    <i class="fa-solid fa-arrow-trend-up"></i> <span data-i18n="start_btn">شروع معامله اتوماتیک 🚀</span>
+                </button>
+            </div>
+
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <h3 style="color:#00f2fe; font-size:14px;"><i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="history_title">تاریخچه معاملات</span></h3>
+                    <span style="font-size:11px; color:#64748b; font-family:monospace;" id="trade-count-badge">0 Trades</span>
+                </div>
+                <div id="history-list" style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="text-align:center; padding:16px; font-size:11px; color:#64748b;" data-i18n="no_trade">هنوز معامله‌ای ثبت نشده است.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: DEPOSIT -->
+        <section id="tab-deposit" class="view-section">
+            <div class="card" style="direction:ltr; text-align:left;">
+                <h3 style="color:#10b981; font-size:15px; margin-bottom:12px;">Deposit Funds (شارژ حساب)</h3>
+                <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:10px; font-size:11px; color:#10b981; margin-bottom:12px; text-align:right; direction:rtl;">
+                    ⚠️ حداقل مبلغ واریز ۳۰ دلار (USDT) از طریق شبکه BEP20. پس از واریز، درخواست شما به مدیر ارسال می‌شود تا پس از تأیید به حساب اضافه گردد.
+                </div>
+                <label style="font-size:11px; color:#94a3b8;">USDT BEP20 Admin Address:</label>
+                <div style="position:relative; margin-bottom:14px;">
+                    <input type="text" id="admin-wallet-display" class="std-input" readonly value="0x7cfd634c9bded490f8601506c6568766cf827ce8" style="font-size:10px; color:#00f2fe;">
+                    <button onclick="copyDepositWallet()" style="position:absolute; right:4px; top:6px; background:#17253d; border:1px solid #00f2fe; color:#fff; padding:6px 10px; border-radius:6px; font-size:10px; cursor:pointer;">Copy</button>
+                </div>
+                <label style="font-size:11px; color:#94a3b8;">Amount (Min 30 USDT):</label>
+                <input type="number" class="std-input" id="dep-amt-input" value="30">
+                <button class="invest-btn" style="background:#10b981; color:#fff;" onclick="submitDeposit()">Submit Deposit Request</button>
+            </div>
+        </section>
+
+        <!-- TAB 3: WITHDRAW -->
+        <section id="tab-withdraw" class="view-section">
+            <div class="card" style="direction:ltr; text-align:left;">
+                <h3 style="color:#f59e0b; font-size:15px; margin-bottom:12px;">Withdraw Funds (برداشت وجه)</h3>
+                <div style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:10px; font-size:11px; color:#f59e0b; margin-bottom:12px; text-align:right; direction:rtl;">
+                    ⚠️ حداقل میزان برداشت ۴۰ دلار (USDT). پس از ثبت، وجه پس از تأیید نهایی ادمین به ولت شما واریز خواهد شد.
+                </div>
+                <label style="font-size:11px; color:#94a3b8;">Your BEP20 Wallet Address:</label>
+                <input type="text" class="std-input" id="w-addr" placeholder="0x...">
+                <label style="font-size:11px; color:#94a3b8;">Withdraw Amount (Min 40 USDT):</label>
+                <input type="number" class="std-input" id="w-amt" value="40">
+                <button class="invest-btn" style="background:#f59e0b; color:#030712;" onclick="submitWithdrawal()">Submit Withdrawal Request</button>
+            </div>
+        </section>
+
+        <!-- TAB 4: RULES -->
+        <section id="tab-rules" class="view-section">
+            <div class="card">
+                <h3 style="color:#00f2fe; font-size:15px; margin-bottom:12px;"><i class="fa-solid fa-book"></i> قوانین و مقررات پلتفرم</h3>
+                <p style="font-size:11px; line-height:1.8; color:#94a3b8;">
+                    ۱. تمامی معاملات به‌صورت کاملاً خودکار توسط الگوریتم هوش مصنوعی روی بازارهای جهانی انجام می‌شود.<br>
+                    ۲. حداقل واریز سرمایه ۳۰ دلار (USDT) و حداقل برداشت ۴۰ دلار (USDT) می‌باشد.<br>
+                    ۳. تأیید تمامی واریزها و برداشت‌ها جهت امنیت دارایی‌ها نیازمند بررسی و تأیید ادمین است.<br>
+                    ۴. از سود هر معامله موفق، ۵ درصد به عنوان کارمزد زیرساخت کسر می‌گردد.<br>
+                    ۵. ثبت‌نام با ایمیل معتبر و تأیید کد امنیتی برای تمامی کاربران الزامی است.
+                </p>
+            </div>
+        </section>
+
+        <!-- TAB 5: ADMIN PANEL -->
+        <section id="tab-admin" class="view-section">
+            <div class="card">
+                <h3 style="color:#00f2fe; font-size:14px; margin-bottom:14px;"><i class="fa-solid fa-shield-halved"></i> پنل مدیریت مرکزی</h3>
+                
+                <label style="font-size:11px; color:#94a3b8;">تنظیم آدرس ولت ادمین (BEP20):</label>
+                <input type="text" class="std-input" id="admin-wallet-input" value="0x7cfd634c9bded490f8601506c6568766cf827ce8">
+                <button class="invest-btn" style="background:#00f2fe; color:#030712; padding:10px; margin-bottom:14px;" onclick="saveAdminWalletSetting()">ذخیره آدرس ولت</button>
+
+                <h4 style="color:#fff; font-size:13px; margin:14px 0 8px;">درخواست‌های در انتظار تأیید:</h4>
+                <div id="admin-requests-list" style="display:flex; flex-direction:column; gap:8px;">
+                    <div style="font-size:11px; color:#64748b; text-align:center; padding:10px;">درخواستی وجود ندارد.</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MANDATORY REGISTRATION & EMAIL VERIFICATION MODAL -->
+    <div class="modal show" id="auth-modal" style="background:rgba(3,7,18,0.98);">
+        <div class="modal-box">
+            <h2 style="color:#fff; font-size:18px; margin-bottom:8px;" id="auth-title">ثبت‌نام اجباری در YaqobiTrad</h2>
+            <p style="font-size:11px; color:#94a3b8; margin-bottom:16px;" id="auth-desc">برای دسترسی به پلتفرم، لطفاً ایمیل و نام خود را وارد کنید.</p>
+            
+            <div id="step-register-form">
+                <input type="text" class="std-input" id="reg-name" placeholder="نام کاربری (Name)" style="text-align:right;">
+                <input type="email" class="std-input" id="reg-email" placeholder="ایمیل معتبر (Email)" style="text-align:left;">
+                <button class="invest-btn" onclick="sendVerificationCode()">ارسال کد تأیید ایمیل</button>
+            </div>
+
+            <div id="step-verify-code" style="display:none;">
+                <div style="background:rgba(0,242,254,0.1); border:1px solid rgba(0,242,254,0.3); padding:8px; border-radius:8px; font-size:11px; color:#00f2fe; margin-bottom:12px;">
+                    کد تأیید ۶ رقمی آزمایشی ارسال شد: <strong id="mock-code-box" style="color:#fff; font-size:13px;">123456</strong>
+                </div>
+                <input type="text" class="std-input" id="ver-code-input" placeholder="کد ۶ رقمی را وارد کنید" style="text-align:center; font-size:16px; letter-spacing:4px;">
+                <button class="invest-btn" onclick="verifyEmailCode()">تأیید و ورود به پلتفرم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GENERAL MODAL ALERT -->
+    <div class="modal" id="app-modal">
+        <div class="modal-box">
+            <div id="m-icon" style="font-size:32px; margin-bottom:8px;"></div>
+            <h3 id="m-title" style="color:#fff; font-size:15px; margin-bottom:6px;"></h3>
+            <p id="m-desc" style="font-size:11px; color:#94a3b8; margin-bottom:16px;"></p>
+            <button class="invest-btn" style="padding:10px;" onclick="closeModal()">تأیید / OK</button>
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'fa';
+        let currentUser = null;
+        let balance = 1000.00;
+        let dailyTradesCount = 0;
+        let tradeHistory = [];
+        let pendingRequests = [];
+        let timerSeconds = 60;
+        let currentAsset = "EUR/USD";
+        const allAssets = ["EUR/USD", "BTC/USDT", "ETH/USDT", "XAU/USD", "GBP/USD"];
+        let generatedOtp = "123456";
+        let adminWallet = "0x7cfd634c9bded490f8601506c6568766cf827ce8";
+
+        const dict = {
+            fa: {
+                m_bots: "معاملات اتوماتیک هوش مصنوعی",
+                m_dep: "شارژ حساب (Deposit)",
+                m_w: "برداشت وجه (Withdraw)",
+                m_rules: "قوانین پلتفرم (Rules)",
+                m_logout: "خروج از حساب",
+                m_admin: "پنل مدیریت (Admin)",
+                curr_market: "جفت‌ارز فعال خودکار:",
+                inv_amt: "مبلغ سرمایه‌گذاری (USDT)",
+                bal_lbl: "موجودی:",
+                est_profit: "سود خالص (پس از کسر کارمزد ۵٪):",
+                start_btn: "شروع معامله اتوماتیک 🚀",
+                history_title: "تاریخچه معاملات",
+                no_trade: "هنوز معامله‌ای ثبت نشده است.",
+                menu_title: "منوی اصلی پلتفرم"
+            },
+            en: {
+                m_bots: "AI Automated Trading",
+                m_dep: "Deposit Funds",
+                m_w: "Withdraw Funds",
+                m_rules: "Platform Rules",
+                m_logout: "Logout",
+                m_admin: "Admin Panel",
+                curr_market: "Active Auto Pair:",
+                inv_amt: "Investment Amount (USDT)",
+                bal_lbl: "Balance:",
+                est_profit: "Net Profit (After 5% Platform Fee):",
+                start_btn: "Start Automated Trade 🚀",
+                history_title: "Trading History",
+                no_trade: "No trades recorded yet.",
+                menu_title: "Platform Main Menu"
+            }
+        };
+
+        window.onload = () => {
+            let savedUser = localStorage.getItem('yaqobi_auth_user');
+            let savedBal = localStorage.getItem('yaqobi_balance');
+            let savedWallet = localStorage.getItem('yaqobi_admin_wallet');
+            let savedPending = localStorage.getItem('yaqobi_pending_reqs');
+            
+            if (savedWallet) adminWallet = savedWallet;
+            if (savedBal) balance = parseFloat(savedBal);
+            if (savedPending) pendingRequests = JSON.parse(savedPending);
+
+            document.getElementById('admin-wallet-display').value = adminWallet;
+            document.getElementById('admin-wallet-input').value = adminWallet;
+
+            if (savedUser) {
+                currentUser = savedUser;
+                document.getElementById('auth-modal').classList.remove('show');
+                updateUI();
+            } else {
+                document.getElementById('auth-modal').classList.add('show');
+            }
+            renderAdminRequests();
+            recalcPayout();
+        };
+
+        // Strict 60s countdown timer loop to 00:00
+        setInterval(() => {
+            timerSeconds--;
+            if (timerSeconds <= 0) {
+                timerSeconds = 60;
+                currentAsset = allAssets[Math.floor(Math.random() * allAssets.length)];
+                document.getElementById('active-market-asset').innerText = currentAsset;
+            }
+            let deg = (timerSeconds / 60) * 360;
+            let circle = document.getElementById('timer-circle-elem');
+            if (circle) circle.style.setProperty('--timer-gradient', `conic-gradient(#00f2fe ${deg}deg, #17253d 0deg)`);
+            document.getElementById('timer-display').innerText = '00:' + (timerSeconds < 10 ? '0' + timerSeconds : timerSeconds);
+        }, 1000);
+
+        function updateUI() {
+            document.getElementById('balance-display').innerText = balance.toFixed(2);
+            document.getElementById('card-balance').innerText = balance.toFixed(2);
+            document.getElementById('daily-count').innerText = dailyTradesCount + '/10';
+            localStorage.setItem('yaqobi_balance', balance.toString());
+        }
+
+        function adjustAmount(val) {
+            let input = document.getElementById('invest-amt');
+            let cur = parseFloat(input.value) || 10;
+            cur = Math.max(1, cur + val);
+            input.value = cur;
+            recalcPayout();
+        }
+
+        function recalcPayout() {
+            let amt = parseFloat(document.getElementById('invest-amt').value) || 0;
+            let grossProfit = amt * 0.63;
+            let netProfit = grossProfit * 0.95; // 5% platform fee deducted
+            document.getElementById('net-profit-val').innerText = netProfit.toFixed(2) + ' USDT (+"57%")';
+        }
+
+        function startInvestment() {
+            let amt = parseFloat(document.getElementById('invest-amt').value) || 0;
+            if (amt <= 0 || amt > balance) {
+                showAlert('❌', 'Error / خطا', 'موجودی کافی نیست.');
+                return;
+            }
+
+            balance -= amt;
+            dailyTradesCount++;
+            let isWin = Math.random() > 0.4;
+            let netPayout = isWin ? amt + (amt * 0.63 * 0.95) : 0;
+            if (isWin) balance += netPayout;
+
+            updateUI();
+
+            tradeHistory.unshift({
+                id: '#' + Math.floor(100000 + Math.random() * 900000),
+                pair: currentAsset,
+                amount: amt,
+                won: isWin,
+                profit: isWin ? (amt * 0.63 * 0.95).toFixed(2) : 0,
+                time: new Date().toLocaleTimeString()
+            });
+            renderHistory();
+
+            showAlert(isWin ? '🎉' : '📉', isWin ? 'Trade Won / معامله برنده شد' : 'Trade Lost / معامله باخت', isWin ? `سود خالص: +${(amt * 0.63 * 0.95).toFixed(2)} USDT` : `باخت: -${amt} USDT`);
+        }
+
+        function renderHistory() {
+            let container = document.getElementById('history-list');
+            document.getElementById('trade-count-badge').innerText = tradeHistory.length + ' Trades';
+            if (tradeHistory.length === 0) {
+                container.innerHTML = `<div style="text-align:center; padding:16px; font-size:11px; color:#64748b;">هنوز معامله‌ای ثبت نشده است.</div>`;
+                return;
+            }
+            container.innerHTML = tradeHistory.map(item => `
+                <div style="background:#030712; border:1px solid #17253d; padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; font-size:12px; direction:ltr;">
+                    <div style="text-align:left;">
+                        <strong style="color:#fff;">${item.pair}</strong> <span style="color:#00f2fe; font-size:10px;">${item.id}</span>
+                        <div style="font-size:10px; color:#64748b;">Amt: ${item.amount} USDT</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="color:${item.won ? '#10b981' : '#ef4444'}; font-weight:bold;">${item.won ? '+' + item.profit + ' USDT' : '-' + item.amount + ' USDT'}</span>
+                        <div style="font-size:9px; color:#475569;">${item.time}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Auth & Email verification workflow
+        function sendVerificationCode() {
+            let name = document.getElementById('reg-name').value.trim();
+            let email = document.getElementById('reg-email').value.trim();
+            if (!name || !email || !email.includes('@')) {
+                alert('لطفاً نام و ایمیل معتبر وارد کنید.');
+                return;
+            }
+            generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+            document.getElementById('mock-code-box').innerText = generatedOtp;
+            document.getElementById('step-register-form').style.display = 'none';
+            document.getElementById('step-verify-code').style.display = 'block';
+        }
+
+        function verifyEmailCode() {
+            let code = document.getElementById('ver-code-input').value.trim();
+            if (code !== generatedOtp) {
+                alert('کد وارد شده اشتباه است.');
+                return;
+            }
+            let name = document.getElementById('reg-name').value.trim();
+            currentUser = name;
+            localStorage.setItem('yaqobi_auth_user', currentUser);
+            document.getElementById('auth-modal').classList.remove('show');
+            updateUI();
+        }
+
+        function userLogout() {
+            localStorage.removeItem('yaqobi_auth_user');
+            location.reload();
+        }
+
+        // Deposit & Withdrawal Admin Pending Workflow
+        function submitDeposit() {
+            let amt = parseFloat(document.getElementById('dep-amt-input').value) || 0;
+            if (amt < 30) { showAlert('⚠️', 'Error', 'حداقل واریز ۳۰ USDT است'); return; }
+            pendingRequests.push({ type: 'Deposit', user: currentUser || 'User', amount: amt, status: 'Pending' });
+            localStorage.setItem('yaqobi_pending_reqs', JSON.stringify(pendingRequests));
+            renderAdminRequests();
+            showAlert('📥', 'Submitted / ثبت شد', 'درخواست واریز به ادمین ارسال شد.');
+        }
+
+        function submitWithdrawal() {
+            let amt = parseFloat(document.getElementById('w-amt').value) || 0;
+            let addr = document.getElementById('w-addr').value.trim();
+            if (amt < 40 || amt > balance) { showAlert('⚠️', 'Error', 'مبلغ برداشت نامعتبر است.'); return; }
+            if (!addr) { showAlert('⚠️', 'Error', 'آدرس کیف پول را وارد کنید.'); return; }
+            balance -= amt;
+            updateUI();
+            pendingRequests.push({ type: 'Withdrawal', user: currentUser || 'User', amount: amt, address: addr, status: 'Pending' });
+            localStorage.setItem('yaqobi_pending_reqs', JSON.stringify(pendingRequests));
+            renderAdminRequests();
+            showAlert('⏳', 'Submitted / ثبت شد', 'درخواست برداشت در انتظار تأیید ادمین است.');
+        }
+
+        function renderAdminRequests() {
+            let container = document.getElementById('admin-requests-list');
+            if (pendingRequests.length === 0) {
+                container.innerHTML = `<div style="font-size:11px; color:#64748b; text-align:center; padding:10px;">درخواستی وجود ندارد.</div>`;
+                return;
+            }
+            container.innerHTML = pendingRequests.map((req, idx) => `
+                <div style="background:#030712; border:1px solid #17253d; padding:10px; border-radius:8px; font-size:11px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:#00f2fe;">${req.type}</strong>: ${req.amount} USDT (${req.user})
+                        <div style="font-size:9px; color:#64748b;">Status: ${req.status}</div>
+                    </div>
+                    <div>
+                        <button onclick="approveRequest(${idx})" style="background:#064e3b; color:#10b981; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;">تأیید</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function approveRequest(idx) {
+            let req = pendingRequests[idx];
+            if (req.type === 'Deposit') {
+                balance += req.amount;
+                updateUI();
+            }
+            pendingRequests.splice(idx, 1);
+            localStorage.setItem('yaqobi_pending_reqs', JSON.stringify(pendingRequests));
+            renderAdminRequests();
+            showAlert('✅', 'Approved', 'درخواست با موفقیت توسط ادمین تأیید شد.');
+        }
+
+        function verifyAdminAccess() {
+            toggleDrawer();
+            let pin = prompt("رمز عبور پنل ادمین را وارد کنید (Aa1111111111):");
+            if (pin === "Aa1111111111") {
+                switchTab('admin');
+            } else if (pin) {
+                showAlert('❌', 'Error', 'رمز عبور اشتباه است.');
+            }
+        }
+
+        function saveAdminWalletSetting() {
+            adminWallet = document.getElementById('admin-wallet-input').value.trim();
+            localStorage.setItem('yaqobi_admin_wallet', adminWallet);
+            document.getElementById('admin-wallet-display').value = adminWallet;
+            showAlert('✅', 'Saved', 'آدرس ولت ادمین ذخیره شد.');
+        }
+
+        function toggleLang() {
+            currentLang = currentLang === 'fa' ? 'en' : 'fa';
+            document.getElementById('html-root').setAttribute('lang', currentLang);
+            document.getElementById('html-root').setAttribute('dir', currentLang === 'fa' ? 'rtl' : 'ltr');
+            
+            let t = dict[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                let key = el.getAttribute('data-i18n');
+                if (t[key]) el.innerText = t[key];
+            });
+            document.getElementById('menu-title-txt').innerText = t.menu_title;
+        }
+
+        function toggleDrawer() {
+            document.getElementById('drawer-menu').classList.toggle('open');
+            document.getElementById('drawer-overlay').classList.toggle('show');
+        }
+
+        function switchTab(tabId) {
+            if (document.getElementById('drawer-menu').classList.contains('open')) toggleDrawer();
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            let sec = document.getElementById('tab-' + tabId);
+            if (sec) sec.classList.add('active');
+        }
+
+        function copyDepositWallet() {
+            navigator.clipboard.writeText(adminWallet);
+            showAlert('✅', 'Copied', 'آدرس ولت ادمین کپی شد.');
+        }
+
+        function showAlert(icon, title, desc) {
+            document.getElementById('m-icon').innerText = icon;
+            document.getElementById('m-title').innerText = title;
+            document.getElementById('m-desc').innerText = desc;
+            document.getElementById('app-modal').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('app-modal').classList.remove('show');
+        }
+    </script>
+</body>
+</html>
